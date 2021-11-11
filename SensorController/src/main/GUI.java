@@ -12,6 +12,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+
 public class GUI extends JFrame {
 	
 	Server server;
@@ -22,8 +23,9 @@ public class GUI extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 		loadPage();
-		setSize(400, 500);
-		setVisible(true);
+		setTitle("Sensor Controller");
+		setSize(400, 700);
+		setVisible(true);		
 
 		server = new Server(6000, this);
 		Thread t = new Thread(server);
@@ -50,13 +52,18 @@ public class GUI extends JFrame {
 	
 	public void createSensor(String line) {
 		JPanel p = new JPanel();
-		p.setLayout(new FlowLayout(FlowLayout.LEFT));
+		p.setLayout(new FlowLayout(FlowLayout.LEFT, 50, 20));
 		JLabel l = new JLabel(line);
+		JLabel iplabel = new JLabel("Unknown");
 		JButton b = new JButton("Start");
 		b.setEnabled(false);
 		p.add(l);
+		p.add(iplabel);
 		p.add(b);
 		getContentPane().add(p);
+		
+		Sensor s = new Sensor(line, b, iplabel);
+		sensors.add(s);
 	}
 	
 	public void addClientToSensor(Client c) {

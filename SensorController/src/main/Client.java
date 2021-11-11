@@ -5,6 +5,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class Client{
@@ -14,6 +15,7 @@ public class Client{
 	boolean isConnected;
 	public String name;
 	PrintWriter writer;
+	InetAddress ip;
 	
 	
 	public Client(Socket s, BufferedReader br, String n) {
@@ -21,6 +23,7 @@ public class Client{
 		in = br;
 		name = n;
 		isConnected = true;
+		ip = (InetAddress)s.getInetAddress();
 		
 		try {
 			writer = new PrintWriter(s.getOutputStream(), true);
