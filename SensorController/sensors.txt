@@ -1,6 +1,6 @@
-Sensor A
-Sensor B
-Sensor C
-Sensor D
-Sensor E
-Sensor F
+1,Sensor A
+2,Sensor B
+3,Sensor C
+4,Sensor D
+5,Sensor E
+6,Sensor F

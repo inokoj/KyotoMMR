@@ -16,7 +16,7 @@ import javax.swing.JPanel;
 public class GUI extends JFrame {
 	
 	Server server;
-	ArrayList<Sensor> sensors = new ArrayList<Sensor>();
+	static ArrayList<Sensor> sensors = new ArrayList<Sensor>();
 	
 	public GUI(){  
 
@@ -24,7 +24,7 @@ public class GUI extends JFrame {
 		setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 		loadPage();
 		setTitle("Sensor Controller");
-		setSize(400, 700);
+		setSize(500, 700);
 		setVisible(true);		
 
 		server = new Server(6000, this);
@@ -53,27 +53,52 @@ public class GUI extends JFrame {
 	public void createSensor(String line) {
 		JPanel p = new JPanel();
 		p.setLayout(new FlowLayout(FlowLayout.LEFT, 50, 20));
-		JLabel l = new JLabel(line);
+		String[] info = line.split(",");
+		int id = Integer.parseInt(info[0]);
+		String name = info[1];
+		JLabel l = new JLabel(name);
 		JLabel iplabel = new JLabel("Unknown");
+		JLabel statusLabel = new JLabel("Not connected");
 		JButton b = new JButton("Start");
 		b.setEnabled(false);
 		p.add(l);
 		p.add(iplabel);
+		p.add(statusLabel);
 		p.add(b);
 		getContentPane().add(p);
 		
-		Sensor s = new Sensor(line, b, iplabel);
+		Sensor s = new Sensor(id, name, b, iplabel, statusLabel);
 		sensors.add(s);
 	}
 	
-	public void addClientToSensor(Client c) {
+	public void addClientToSensor(Client c, String state) {
 		for(Sensor s:sensors) {
-			if(c.name.equals(s.name)) {
-				s.updateClient(c);
+			if(c.id == s.id && c.name.equals(s.name)) {
+				s.updateClient(c, state);
 				break;
 			}
 		}
 	}
+	
+	public static void disconnectClient(Client c) {
+		for(Sensor s:sensors) {
+			if(c.id == s.id && c.name.equals(s.name)) {
+				s.disconnection();
+				break;
+			}
+		}	
+	}
+	
+	public static void updateClientState(Client c, String state) {
+		for(Sensor s:sensors) {
+			if(c.id == s.id && c.name.equals(s.name)) {
+				s.updateState(state);
+				break;
+			}
+		}
+	
+	}
+	
 	
 
 }

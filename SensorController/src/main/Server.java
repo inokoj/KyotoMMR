@@ -29,9 +29,21 @@ public class Server implements Runnable {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected");
         		BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        		String sensorName = in.readLine();
-                Client c = new Client(clientSocket, in, sensorName);  
-                parent.addClientToSensor(c);
+        		String info = in.readLine();
+        		System.out.println(info);
+        		String[] data = info.split(",");
+        		int sensorID = Integer.parseInt(data[0]);
+        		String sensorName = data[1];
+        		String sensorState = data[2];
+        		System.out.println(sensorID + " " + sensorName + " "+  sensorState);
+        		       		
+        		Client c = new Client(clientSocket, in, sensorID, sensorName);  
+                parent.addClientToSensor(c, sensorState);
+                
+        		Thread t = new Thread(c);
+        		t.setDaemon(true);
+        		t.start();
+
             }
  
         } catch (IOException ex) {
