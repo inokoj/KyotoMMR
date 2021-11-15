@@ -30,7 +30,7 @@ public class GUI extends JFrame {
 		setLayout(new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS));
 		loadPage();
 		setTitle("Sensor Controller");
-		setSize(1000, 700);
+		setSize(1000, 800);
 		setVisible(true);		
 
 		server = new Server(6000, this);
@@ -115,6 +115,7 @@ public class GUI extends JFrame {
 		
 		JButton b = new JButton("Start");
 		b.setPreferredSize(new Dimension(100, 40));
+		b.setFont(new Font("Sans-Serif", Font.PLAIN, fontSize));
 		b.setEnabled(false);
 		
 
@@ -159,7 +160,7 @@ public class GUI extends JFrame {
 	private void createBatchButtons() {
 		
 		JPanel p = new JPanel();
-		p.setLayout(new FlowLayout(FlowLayout.CENTER, 50, 20));
+		p.setLayout(new FlowLayout(FlowLayout.CENTER, 100, 20));
 		batchStart = new JButton("Start All");
 		batchStart.addActionListener(new ActionListener() {
 			
@@ -173,7 +174,8 @@ public class GUI extends JFrame {
 				}
 			}
 		});
-		batchStart.setPreferredSize(new Dimension(100, 40));
+		batchStart.setPreferredSize(new Dimension(150, 40));
+		batchStart.setFont(new Font("Sans-Serif", Font.PLAIN, 24));
 		p.add(batchStart);
 		
 		batchStop = new JButton("Stop All");
@@ -189,7 +191,8 @@ public class GUI extends JFrame {
 				}
 			}
 		});
-		batchStop.setPreferredSize(new Dimension(100, 40));
+		batchStop.setPreferredSize(new Dimension(150, 40));
+		batchStop.setFont(new Font("Sans-Serif", Font.PLAIN, 24));
 		p.add(batchStop);
 		
 		getContentPane().add(p);
