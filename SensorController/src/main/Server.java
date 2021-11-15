@@ -33,11 +33,12 @@ public class Server implements Runnable {
         		System.out.println(info);
         		String[] data = info.split(",");
         		int sensorID = Integer.parseInt(data[0]);
-        		String sensorName = data[1];
-        		String sensorState = data[2];
-        		System.out.println(sensorID + " " + sensorName + " "+  sensorState);
+        		String sensorType = data[1];
+        		String sensorName = data[2];
+        		String sensorState = data[3];
+        		System.out.println(sensorID + " " + sensorType + " " + sensorName + " "+  sensorState);
         		       		
-        		Client c = new Client(clientSocket, in, sensorID, sensorName);  
+        		Client c = new Client(clientSocket, in, sensorID, sensorName, sensorType);  
                 parent.addClientToSensor(c, sensorState);
                 
         		Thread t = new Thread(c);

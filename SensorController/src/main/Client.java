@@ -15,15 +15,17 @@ public class Client implements Runnable{
 	BufferedReader in;
 	boolean isConnected;
 	public String name;
+	String type;
 	PrintWriter writer;
 	InetAddress ip;
 	int id;
 	
 	
-	public Client(Socket s, BufferedReader br, int i, String n) {
+	public Client(Socket s, BufferedReader br, int i, String n, String t) {
 		socket = s;
 		in = br;
 		name = n;
+		type = t;
 		id = i;
 		isConnected = true;
 		ip = (InetAddress)s.getInetAddress();
@@ -48,7 +50,7 @@ public class Client implements Runnable{
 			try {
 				String message = in.readLine();
 				String[] info = message.split(",");
-				String state = info[2];
+				String state = info[3];
 				GUI.updateClientState(this, state);
 			}
 			catch(SocketException e) {

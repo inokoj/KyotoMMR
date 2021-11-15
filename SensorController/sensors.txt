@@ -1,6 +1,7 @@
-1,Sensor A
-2,Sensor B
-3,Sensor C
-4,Sensor D
-5,Sensor E
-6,Sensor F
+1,audio-subject
+2,audio-operator
+3,audio-micarray
+4,video-subject
+5,video-operator
+6,video-erica
+7,video-side
