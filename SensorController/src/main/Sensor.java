@@ -11,7 +11,7 @@ public class Sensor {
 	
 	JButton button;
 	String name;
-	Client client;
+	public Client client;
 	JLabel iplabel;
 	JLabel statusLabel;
 	int id;
@@ -70,6 +70,7 @@ public class Sensor {
 			statusLabel.setForeground(Color.RED);
 			button.setText("Stop");
 		}
+		
 	}
 	
 	public void disconnection() {
