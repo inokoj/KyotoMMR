@@ -72,7 +72,7 @@ public class GUI extends JFrame {
 		iplabel.setPreferredSize(new Dimension(prefWidth, prefHeight));
 		iplabel.setFont(new Font("Sans-Serif", Font.PLAIN, fontSize));
 		
-		JLabel statusLabel = new JLabel("Not connected");
+		JLabel statusLabel = new JLabel("Disconnected");
 		statusLabel.setPreferredSize(new Dimension(prefWidth, prefHeight));
 		statusLabel.setFont(new Font("Sans-Serif", Font.PLAIN, fontSize));
 		

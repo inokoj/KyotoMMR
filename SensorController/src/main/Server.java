@@ -30,13 +30,11 @@ public class Server implements Runnable {
                 System.out.println("New client connected");
         		BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         		String info = in.readLine();
-        		System.out.println(info);
         		String[] data = info.split(",");
         		int sensorID = Integer.parseInt(data[0]);
         		String sensorType = data[1];
         		String sensorName = data[2];
         		String sensorState = data[3];
-        		System.out.println(sensorID + " " + sensorType + " " + sensorName + " "+  sensorState);
         		       		
         		Client c = new Client(clientSocket, in, sensorID, sensorName, sensorType);  
                 parent.addClientToSensor(c, sensorState);
@@ -50,6 +48,7 @@ public class Server implements Runnable {
         } catch (IOException ex) {
             System.out.println("Server exception: " + ex.getMessage());
             ex.printStackTrace();
-        }	
+        }
+   
 	}
 }

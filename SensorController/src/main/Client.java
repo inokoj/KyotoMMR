@@ -49,6 +49,10 @@ public class Client implements Runnable{
 		while(true) {
 			try {
 				String message = in.readLine();
+				if(message == null) {//client has disconnected
+					GUI.disconnectClient(this);
+					break;
+				}
 				String[] info = message.split(",");
 				String state = info[3];
 				GUI.updateClientState(this, state);
