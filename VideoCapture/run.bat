@@ -1,2 +1,2 @@
-call activate opencv
-python video_capture.py
+call activate mmrec
+python video_capture.py --config config/config-sample.txt
