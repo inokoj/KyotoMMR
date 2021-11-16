@@ -1,0 +1,17 @@
+[Connection]
+server_ip = 127.0.0.1
+server_port = 6000
+
+[Sensor]
+sensor_id = 1
+sensor_type = audio
+sensor_name = audio-subject
+
+device_number = -1
+device_bps = 16
+device_channel = 1
+device_sampling_rate = 16000
+
+[Save]
+save_dir = ./data
+save_data_interval_minute = 1

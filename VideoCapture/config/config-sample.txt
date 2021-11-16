@@ -1,0 +1,17 @@
+[Connection]
+server_ip = 127.0.0.1
+server_port = 6000
+
+[Sensor]
+sensor_id = 4
+sensor_type = video
+sensor_name = video-subject
+
+device_number = 0
+device_width = 1920
+device_height = 1080
+device_fps = 30
+
+[Save]
+save_dir = ./data/
+save_data_interval_minute = 1
