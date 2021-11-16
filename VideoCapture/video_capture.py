@@ -18,7 +18,6 @@ import datetime
 
 import socket
 from threading import Thread
-import copy
 from collections import deque
 import cv2
 
@@ -64,14 +63,6 @@ class VideoCapture:
 	# 処理開始
 	def start(self):
 
-		# # 別スレッドでビデオの処理を開始
-		# thread_video = Thread(target=self.process_video)
-		# #thread_audio.setDaemon(True)
-		# thread_video.start()
-
-		# # メインスレッドでサーバへの接続処理と受信処理を開始
-		# self.process_connection()
-
 		# 別スレッドでビデオの処理を開始
 		thread_video = Thread(target=self.process_video)
 		thread_video.setDaemon(True)
@@ -79,23 +70,6 @@ class VideoCapture:
 
 		# メインスレッドでサーバへの接続処理と受信処理を開始
 		self.process_connection()
-	
-	# # 音声デバイスの情報を表示
-	# def list_audio_devices(self):
-
-	# 	print('----------audio device info-----------')
-
-	# 	for x in range(0, self.p.get_device_count()):
-	# 		d = self.p.get_device_info_by_index(x)
-	# 		if d['maxInputChannels'] > 0:
-	# 			print(u'%d : %s (ch.=%d)' % (d['index'], d['name'], d['maxInputChannels']))
-		
-	# 	print('--------------------------------------')
-
-	# 	# Defaultの番号を使用
-	# 	if self.audio_device_number == -1:
-	# 		self.audio_device_number = self.p.get_default_input_device_info()['index']
-	# 		print('User default device -> %d' % self.audio_device_number)
 
 	def load_config(self, config_filename):
 
@@ -193,18 +167,17 @@ class VideoCapture:
 			# センサ停止
 			elif message.startswith('RECSTOP'):
 				
-				self.recording = False
-				
-				#self.data_saved_temp = copy.deepcopy(self.data_saved)
-				self.filename_temp = self.save_dir + '/' + self.start_time_str + '.mp4'
-				t = Thread(target=self.write)
-				t.setDaemon(True)
-				t.start()
-				self.data_saved = deque([])
-
 				dt_now = datetime.datetime.now()
 				temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
 				print('RECSTOP : %s' % temp)
+
+				self.recording = False
+				
+				self.data_saved.append(None)
+				
+				self.filename_temp = self.save_dir + '/' + self.start_time_str + '.mp4'
+				self.write()
+				self.data_saved = deque([])
 
 				# 待機状態のメッセージを送る
 				message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)

@@ -18,6 +18,7 @@ import datetime
 
 import socket
 from threading import Thread
+from collections import deque
 
 import wave
 import pyaudio as pa
@@ -73,7 +74,7 @@ class AudioCapture:
 		# Defaultの番号を使用
 		if self.audio_device_number == -1:
 			self.audio_device_number = self.p.get_default_input_device_info()['index']
-			print('User default device -> %d' % self.audio_device_number)
+			print('Use default device -> %d' % self.audio_device_number)
 
 	def load_config(self, config_filename):
 
@@ -158,7 +159,7 @@ class AudioCapture:
 				dt_now = datetime.datetime.now()
 				self.start_time_str = dt_now.strftime('%Y%m%d%H%M%S')
 				self.last_minute = dt_now.minute
-				self.data_saved = []
+				self.data_saved = deque([])
 				
 				self.recording = True
 
@@ -173,15 +174,16 @@ class AudioCapture:
 			# センサ停止
 			elif message.startswith('RECSTOP'):
 				
-				self.recording = False
-
-				filename = self.save_dir + '/' + self.start_time_str + '.wav'
-				self.write(filename, self.data_saved)
-				self.data_saved = []
-
 				dt_now = datetime.datetime.now()
 				temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
 				print('RECSTOP : %s' % temp)
+
+				self.recording = False
+				self.data_saved.append(None)
+
+				self.filename_temp = self.save_dir + '/' + self.start_time_str + '.wav'
+				self.write()
+				self.data_saved = deque([])
 
 				# 待機状態のメッセージを送る
 				message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
@@ -254,9 +256,15 @@ class AudioCapture:
 						if minute % self.save_data_interval_minute == 0:
 							
 							# ファイルに保存
-							filename = self.save_dir + '/' + self.start_time_str + '.wav'
-							self.write(filename, self.data_saved)
-							self.data_saved = []
+							self.data_saved.append(None)
+							self.filename_temp = self.save_dir + '/' + self.start_time_str + '.wav'
+							t = Thread(target=self.write)
+							t.setDaemon(True)
+							t.start()
+
+							# filename = self.save_dir + '/' + self.start_time_str + '.wav'
+							# self.write(filename, self.data_saved)
+							# self.data_saved = []
 
 							self.start_time_str = dt_now.strftime('%Y%m%d%H%M%S')
 
@@ -284,22 +292,64 @@ class AudioCapture:
 		# 	self.write(filename, data_saved)
 		# 	data_saved = []
 		
-	def write(self, filename, data_saved):
+	def write(self):
+			
+		num_frame = 0
+		data = []
+		while True:
+			frame = self.data_saved.popleft()
+			if frame is None:
+				break
+			data.append(frame)
+			num_frame += 1
+		
+		if len(data) == 0:
+			return
+		
+		# 先頭のフレームの時間
+		dt_start = data[0][0]
+		dt_end = data[-1][0]
+		dt_len = dt_end - dt_start
+
+		# フレーム数を合わせて保存する
+		num_frame_recorded = 0
+		num_frame_target = int((self.audio_rate * self.save_data_interval_minute * 60) / self.audio_chunk)
+		data_saved_new = []
+		for t in np.linspace(0, self.save_data_interval_minute * 60, num_frame_target):
+			
+			nearest_frame = None
+			min_diff = 1E+6
+
+			# 最初のファイル対策
+			if t > dt_len.total_seconds() + 1.0:
+				continue
+
+			for d in data:
+				time = d[0] - dt_start
+				diff = abs(time.total_seconds() - t)
+				
+				if min_diff > diff:
+					min_diff = diff
+					nearest_frame = d[1]
+			
+			#if min_diff < MIN_DIFF and nearest_frame is not None:
+			data_saved_new.append(nearest_frame)
+			num_frame_recorded += 1
 		
 		# ファイルに保存
 		if os.path.exists(self.save_dir) == False:
 			os.makedirs(self.save_dir)
 		
-		ww = wave.open(filename, 'wb')
+		ww = wave.open(self.filename_temp, 'wb')
 		ww.setnchannels(self.audio_channel)
 		ww.setsampwidth(self.p.get_sample_size(self.audio_format))
 		ww.setframerate(self.audio_rate)
-
-		ww.writeframes(b''.join(data_saved))
-		
+		ww.writeframes(b''.join(data_saved_new))
 		ww.close()
-		
-		print('Saved : ' + filename)
+
+		print('# captured frame = %d' % num_frame)
+		print('# recorded frame = %d' % num_frame_recorded)
+		print('Saved : ' + self.filename_temp)
 
 if __name__ == "__main__":
 
