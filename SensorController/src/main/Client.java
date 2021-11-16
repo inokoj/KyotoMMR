@@ -53,9 +53,13 @@ public class Client implements Runnable{
 					GUI.disconnectClient(this);
 					break;
 				}
+				System.out.println("message:" + message);
 				String[] info = message.split(",");
 				String state = info[3];
 				GUI.updateClientState(this, state);
+			}
+			catch(ArrayIndexOutOfBoundsException e) {
+				System.out.println("Invalid message!");
 			}
 			catch(SocketException e) {
 				GUI.disconnectClient(this);

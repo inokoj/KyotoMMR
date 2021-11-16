@@ -27,7 +27,6 @@ public class Server implements Runnable {
  
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("New client connected");
         		BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         		String info = in.readLine();
         		String[] data = info.split(",");
@@ -36,8 +35,13 @@ public class Server implements Runnable {
         		String sensorName = data[2];
         		String sensorState = data[3];
         		       		
-        		Client c = new Client(clientSocket, in, sensorID, sensorName, sensorType);  
-                parent.addClientToSensor(c, sensorState);
+        		Client c = new Client(clientSocket, in, sensorID, sensorName, sensorType);
+        		
+        		if(parent.addClientToSensor(c, sensorState) == null) {
+        			System.out.println("Not a valid client, disconnecting...");
+        			clientSocket.close();
+        			continue;
+        		}
                 
         		Thread t = new Thread(c);
         		t.setDaemon(true);

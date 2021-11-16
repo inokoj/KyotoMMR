@@ -129,13 +129,16 @@ public class GUI extends JFrame {
 		sensors.add(s);
 	}
 	
-	public void addClientToSensor(Client c, String state) {
+	public Sensor addClientToSensor(Client c, String state) {
+		Sensor sensor = null;
 		for(Sensor s:sensors) {
 			if(c.id == s.id && c.name.equals(s.name)) {
+				sensor = s;
 				s.updateClient(c, state);
 				break;
 			}
 		}
+		return sensor;
 	}
 	
 	public static void disconnectClient(Client c) {

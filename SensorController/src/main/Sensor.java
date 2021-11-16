@@ -33,6 +33,7 @@ public class Sensor {
 		button.setEnabled(true);
 		this.state = state;
 		updateStatusGUI();
+        System.out.println("New client connected");
 	}
 	
 	private void createButtonListener() {
