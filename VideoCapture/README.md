@@ -1,6 +1,8 @@
 # VideoCapture
 
-Kyoto University Multi-Modal Recording system
+This is a client application that caputeres video data with opencv-python
+
+for Kyoto University Multi-Modal Recording system
 
 # Requirements
 
