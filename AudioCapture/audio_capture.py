@@ -28,7 +28,7 @@ FILENAME_CONFIG_DEFAULT = './config/config-sample.txt'
 
 class AudioCapture:
 	
-	audio_chunk = 160 # 1024 / 44100 ~ 25 msec
+	audio_chunk = 1000 # 1000 / 16000 = 62.5 msec
 	socket_buffer_size = 1024
 	socket_message_format = 'utf-8'
 
@@ -80,7 +80,7 @@ class AudioCapture:
 
 		# 設定ファイルを読み込む
 		config = configparser.ConfigParser()
-		config.read(config_filename)
+		config.read(config_filename, 'UTF-8')
 
 		self.server_ip = config.get('Connection', 'server_ip')
 		self.server_port = config.getint('Connection', 'server_port')
@@ -100,11 +100,19 @@ class AudioCapture:
 			self.audio_format = pa.paInt24
 			self.audio_format_str = 'int24'
 			self.ref_max = np.power(2, 23) - 1
-		self.audio_channel = config.getint('Sensor', 'device_channel')
+		self.audio_input_channel = config.getint('Sensor', 'device_input_channel')
 		self.audio_rate = config.getint('Sensor', 'device_sampling_rate')
 
+		selected_channel = config.get('Save', 'save_selected_channel')
+		self.save_selected_channel = [int(c.strip()) for c in selected_channel.split(',')]
+		self.save_num_channel = len(self.save_selected_channel)
 		self.save_dir = config.get('Save', 'save_dir')
+		self.save_split_by_day = config.getboolean('Save', 'save_split_by_day')
 		self.save_data_interval_minute = config.getint('Save', 'save_data_interval_minute')
+
+		# ファイルを日付毎のファイルに保存	
+		if self.save_split_by_day:
+			self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
 
 		# 保存場所のフォルダがない場合は作成
 		if os.path.exists(self.save_dir) == False:
@@ -118,9 +126,12 @@ class AudioCapture:
 		print('sensor_name : %s' % self.sensor_name)
 		print('audio_device_number (-1 -> default): %d' % self.audio_device_number)
 		print('audio_format : %s' % self.audio_format_str)
-		print('audio_channel : %d' % self.audio_channel)
+		print('audio_input_channel : %d' % self.audio_input_channel)
+		print('save_selected_channel : %s' % selected_channel)
+		print('audio_output_channel : %d' % self.save_num_channel)
 		print('audio_rate : %d' % self.audio_rate)
 		print('save_dir : %s' % self.save_dir)
+		print('save_split_by_day : %s' % self.save_split_by_day)
 		print('save_data_interval_minute : %d' % self.save_data_interval_minute)
 		print('---------------------------')
 	
@@ -153,7 +164,7 @@ class AudioCapture:
 			print("[RECEIVE] %s" % message.strip())
 			
 			# センサスタート
-			if message.startswith('RECSTART'):
+			if message.startswith('RECSTART') and self.recording == False:
 				
 				# ファイル保存に使用する名前
 				dt_now = datetime.datetime.now()
@@ -172,7 +183,7 @@ class AudioCapture:
 				self.s.send(message.encode(self.socket_message_format))
 			
 			# センサ停止
-			elif message.startswith('RECSTOP'):
+			elif message.startswith('RECSTOP') and self.recording:
 				
 				dt_now = datetime.datetime.now()
 				temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
@@ -196,7 +207,7 @@ class AudioCapture:
 		stream = self.p.open(
 			input_device_index= self.audio_device_number,
 			format = self.audio_format,
-			channels = self.audio_channel,
+			channels = self.audio_input_channel,
 			rate = self.audio_rate,
 			input = True,
 			output = False,
@@ -213,7 +224,7 @@ class AudioCapture:
 
 		# 音量はセンサー収録時以外で5回/秒表示
 		count_display = 0
-		display_interval = (int(self.audio_rate / self.audio_chunk) / 5)
+		display_interval = int(int(self.audio_rate / self.audio_chunk) / 5)
 		display_max = 0.
 
 		while stream.is_active():
@@ -225,6 +236,15 @@ class AudioCapture:
 				# データを取得
 				dat_raw = stream.read(self.audio_chunk, exception_on_overflow=False)
 				dat = np.frombuffer(dat_raw, np.int16)
+
+				# チャネルを選択
+				if self.audio_input_channel != self.save_num_channel:
+					dat_new = []
+					for idx, d in enumerate(dat):
+						i = (idx % self.audio_input_channel) + 1
+						if i in self.save_selected_channel:
+							dat_new.append(d)
+					dat = np.array(dat_new)
 				
 				if self.recording == False:
 					
@@ -341,7 +361,7 @@ class AudioCapture:
 			os.makedirs(self.save_dir)
 		
 		ww = wave.open(self.filename_temp, 'wb')
-		ww.setnchannels(self.audio_channel)
+		ww.setnchannels(self.save_num_channel)
 		ww.setsampwidth(self.p.get_sample_size(self.audio_format))
 		ww.setframerate(self.audio_rate)
 		ww.writeframes(b''.join(data_saved_new))

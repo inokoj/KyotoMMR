@@ -75,7 +75,7 @@ class VideoCapture:
 
 		# 設定ファイルを読み込む
 		config = configparser.ConfigParser()
-		config.read(config_filename)
+		config.read(config_filename, 'UTF-8')
 
 		self.server_ip = config.get('Connection', 'server_ip')
 		self.server_port = config.getint('Connection', 'server_port')
@@ -90,8 +90,13 @@ class VideoCapture:
 		self.video_fps = config.getint('Sensor', 'device_fps')
 
 		self.save_dir = config.get('Save', 'save_dir')
+		self.save_split_by_day = config.getboolean('Save', 'save_split_by_day')
 		self.save_data_interval_minute = config.getint('Save', 'save_data_interval_minute')
 
+		# ファイルを日付毎のファイルに保存	
+		if self.save_split_by_day:
+			self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
+		
 		# 保存場所のフォルダがない場合は作成
 		if os.path.exists(self.save_dir) == False:
 			os.makedirs(self.save_dir)
@@ -107,6 +112,7 @@ class VideoCapture:
 		print('video_width : %d' % self.video_width)
 		print('video_fps : %d' % self.video_fps)
 		print('save_dir : %s' % self.save_dir)
+		print('save_split_by_day : %s' % self.save_split_by_day)
 		print('save_data_interval_minute : %d' % self.save_data_interval_minute)
 		print('---------------------------')
 	
