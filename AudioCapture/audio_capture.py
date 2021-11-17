@@ -223,7 +223,7 @@ class AudioCapture:
 				msec = ('{0:06d}'.format(today.microsecond))[:3]
 				
 				# データを取得
-				dat_raw = stream.read(self.audio_chunk)
+				dat_raw = stream.read(self.audio_chunk, exception_on_overflow=False)
 				dat = np.frombuffer(dat_raw, np.int16)
 				
 				if self.recording == False:
