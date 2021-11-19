@@ -1,0 +1,32 @@
+[Connection]
+# SensorControllerのIPアドレス
+server_ip = 127.0.0.1
+# SensorControllerのポート番号
+server_port = 6000
+
+[Sensor]
+# SensorControllerで指定しているセンサ番号
+sensor_id = 1
+# センサの種類（audio / video など）
+sensor_type = audio
+# センサの名前
+sensor_name = audio-subject
+
+# マイクデバイスの番号（起動時に表示される一覧で確認できる、-1を指定でデフォルトのデバイスを使用）
+device_number = -1
+# ビット数（16 または 24）
+device_bps = 16
+# 入力チャネル数
+device_input_channel = 2
+# サンプリングレート（16000 や 44100 など）
+device_sampling_rate = 16000
+
+[Save]
+# 保存するチャネル番号（１番が最初、カンマ区切りで指定）
+save_selected_channel = 1
+# ファイルの保存場所
+save_dir = ./data/
+# ファイルを日付毎のフォルダに分けて保存するか
+save_split_by_day = True
+# ファイルを何分毎に切り出して保存するか
+save_data_interval_minute = 1

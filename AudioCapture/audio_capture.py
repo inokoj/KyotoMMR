@@ -66,6 +66,7 @@ class AudioCapture:
 
 		for x in range(0, self.p.get_device_count()):
 			d = self.p.get_device_info_by_index(x)
+			print(d)
 			if d['maxInputChannels'] > 0:
 				print(u'%d : %s (ch.=%d)' % (d['index'], d['name'], d['maxInputChannels']))
 		
@@ -113,10 +114,6 @@ class AudioCapture:
 		# ファイルを日付毎のファイルに保存	
 		if self.save_split_by_day:
 			self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
-
-		# 保存場所のフォルダがない場合は作成
-		if os.path.exists(self.save_dir) == False:
-			os.makedirs(self.save_dir)
 	
 		print('----------config-----------')
 		print('server_ip : %s' % self.server_ip)

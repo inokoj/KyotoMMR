@@ -96,10 +96,6 @@ class VideoCapture:
 		# ファイルを日付毎のファイルに保存	
 		if self.save_split_by_day:
 			self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
-		
-		# 保存場所のフォルダがない場合は作成
-		if os.path.exists(self.save_dir) == False:
-			os.makedirs(self.save_dir)
 	
 		print('----------config-----------')
 		print('server_ip : %s' % self.server_ip)
