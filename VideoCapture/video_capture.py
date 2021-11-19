@@ -40,23 +40,27 @@ class VideoCapture:
 		# 設定ファイルを読み込み
 		self.load_config(config_filename)
 
-		# 保存場所のフォルダがない場合は作成
-		if os.path.exists(self.save_dir) == False:
-			os.makedirs(self.save_dir)
-		
 		# カメラを初期化
 		print('Initializing camera...', end='')
 		sys.stdout.flush()
 		self.cap = cv2.VideoCapture(self.video_device_number)
 		print('done!')
 
-		print('Setting video parameter...', end='')
+		print('Setting video parameter', end='')
 		sys.stdout.flush()
 		self.fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
 		#self.fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+		print('.', end='')
+		sys.stdout.flush()
 		self.cap.set(cv2.CAP_PROP_FOURCC, self.fourcc)
+		print('.', end='')
+		sys.stdout.flush()
 		self.cap.set(cv2.CAP_PROP_FPS, self.video_fps)
+		print('.', end='')
+		sys.stdout.flush()
 		self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.video_width)
+		print('.', end='')
+		sys.stdout.flush()
 		self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.video_height)
 		print('done!')
 
@@ -92,10 +96,6 @@ class VideoCapture:
 		self.save_dir = config.get('Save', 'save_dir')
 		self.save_split_by_day = config.getboolean('Save', 'save_split_by_day')
 		self.save_data_interval_minute = config.getint('Save', 'save_data_interval_minute')
-
-		# ファイルを日付毎のファイルに保存	
-		if self.save_split_by_day:
-			self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
 	
 		print('----------config-----------')
 		print('server_ip : %s' % self.server_ip)
@@ -149,6 +149,14 @@ class VideoCapture:
 			# センサスタート
 			if message.startswith('RECSTART'):
 				
+				# ファイルを日付毎のファイルに保存	
+				if self.save_split_by_day:
+					self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
+				
+				# 保存場所のフォルダがない場合は作成
+				if os.path.exists(self.save_dir) == False:
+					os.makedirs(self.save_dir)
+
 				# ファイル保存に使用する名前
 				dt_now = datetime.datetime.now()
 				self.start_time_str = dt_now.strftime('%Y%m%d%H%M%S')

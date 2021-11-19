@@ -1,6 +1,6 @@
 # ExeLauncher
 
-This is a client application that caputeres audio data with pyaudio
+This is a client application that execute any programs
 
 for Kyoto University Multi-Modal Recording system
 
@@ -8,6 +8,3 @@ for Kyoto University Multi-Modal Recording system
 
 python (>3.6)
 
-pyaudio
-- pip install pyaudio
-- (for conda) conda install -c conda-forge pyaudio

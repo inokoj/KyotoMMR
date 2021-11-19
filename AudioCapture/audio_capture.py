@@ -40,10 +40,6 @@ class AudioCapture:
 		# 設定ファイルを読み込み
 		self.load_config(config_filename)
 
-		# 保存場所のフォルダがない場合は作成
-		if os.path.exists(self.save_dir) == False:
-			os.makedirs(self.save_dir)
-
 		# PyAudioを初期化
 		self.p = pa.PyAudio()
 		self.list_audio_devices()
@@ -66,7 +62,6 @@ class AudioCapture:
 
 		for x in range(0, self.p.get_device_count()):
 			d = self.p.get_device_info_by_index(x)
-			print(d)
 			if d['maxInputChannels'] > 0:
 				print(u'%d : %s (ch.=%d)' % (d['index'], d['name'], d['maxInputChannels']))
 		
@@ -110,10 +105,6 @@ class AudioCapture:
 		self.save_dir = config.get('Save', 'save_dir')
 		self.save_split_by_day = config.getboolean('Save', 'save_split_by_day')
 		self.save_data_interval_minute = config.getint('Save', 'save_data_interval_minute')
-
-		# ファイルを日付毎のファイルに保存	
-		if self.save_split_by_day:
-			self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
 	
 		print('----------config-----------')
 		print('server_ip : %s' % self.server_ip)
@@ -163,6 +154,14 @@ class AudioCapture:
 			# センサスタート
 			if message.startswith('RECSTART') and self.recording == False:
 				
+				# ファイルを日付毎のファイルに保存	
+				if self.save_split_by_day:
+					self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
+				
+				# 保存場所のフォルダがない場合は作成
+				if os.path.exists(self.save_dir) == False:
+					os.makedirs(self.save_dir)
+
 				# ファイル保存に使用する名前
 				dt_now = datetime.datetime.now()
 				self.start_time_str = dt_now.strftime('%Y%m%d%H%M%S')
