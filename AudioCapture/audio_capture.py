@@ -103,6 +103,7 @@ class AudioCapture:
 		self.save_selected_channel = [int(c.strip()) for c in selected_channel.split(',')]
 		self.save_num_channel = len(self.save_selected_channel)
 		self.save_dir = config.get('Save', 'save_dir')
+		self.save_dir_original = self.save_dir
 		self.save_split_by_day = config.getboolean('Save', 'save_split_by_day')
 		self.save_data_interval_minute = config.getint('Save', 'save_data_interval_minute')
 	
@@ -156,7 +157,7 @@ class AudioCapture:
 				
 				# ファイルを日付毎のファイルに保存	
 				if self.save_split_by_day:
-					self.save_dir += '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
+					self.save_dir = self.save_dir_original + '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
 				
 				# 保存場所のフォルダがない場合は作成
 				if os.path.exists(self.save_dir) == False:
