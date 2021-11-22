@@ -136,3 +136,4 @@ VideoCapture/config/config.txt
 SensorController/sensors.txt
 ExeLauncher/config/config.txt
 DataTransfer/config/config-audio.txt
+DataTransfer/config/config-video.txt
