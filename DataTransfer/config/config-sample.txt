@@ -1,0 +1,15 @@
+[Copy]
+# コピー先のアドレス
+copy_to = ./data/
+
+# コピー元のアドレス
+copy_from = ./data/
+
+# ファイルを上書きするか
+copy_coverwrite = False
+
+# コピーの対象とするファイルの拡張子（カンマ区切り）
+copy_target_extention = wav,mp4,txt
+
+# コピーの種類（all 全日のデータをコピーする, today 今日のデータのみ, 日付を直接指定）
+copy_daytype = today
