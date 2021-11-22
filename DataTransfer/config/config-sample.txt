@@ -1,12 +1,12 @@
 [Copy]
 # コピー先のアドレス
-copy_to = ./data/
+copy_to = \\TS5400R2FE\share\commu_data_collection\audio_subject\
 
 # コピー元のアドレス
-copy_from = ./data/
+copy_from = .\..\AudioCapture\data\
 
 # ファイルを上書きするか
-copy_coverwrite = False
+copy_overwrite = False
 
 # コピーの対象とするファイルの拡張子（カンマ区切り）
 copy_target_extention = wav,mp4,txt

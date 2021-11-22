@@ -25,9 +25,8 @@ class DataTransfer:
 	データを転送するクラス
 	"""
 
-	def __init__(self):
-		
-		self.load_config()
+	def __init__(self, config_filename):
+		self.load_config(config_filename)
 	
 	def load_config(self, config_filename):
 		"""
@@ -37,15 +36,15 @@ class DataTransfer:
 		config = configparser.ConfigParser()
 		config.read(config_filename, 'UTF-8')
 
-		self.copy_to = config.get('Copy', 'to')
-		self.copy_from = config.get('Copy', 'from')
-		self.copy_coverwrite = config.getboolean('Copy', 'overwrite')
+		self.copy_to = config.get('Copy', 'copy_to')
+		self.copy_from = config.get('Copy', 'copy_from')
+		self.copy_overwrite = config.getboolean('Copy', 'copy_overwrite')
 		
 		self.target_extention_raw = config.get('Copy', 'copy_target_extention')
 		if self.target_extention_raw.strip() == 'all':
 			self.target_extention = None
 		else:
-			self.target_extention = [s.strip() in for s in self.target_extention.split(',')]
+			self.target_extention = [s.strip() for s in self.target_extention_raw.split(',')]
 		
 		self.copy_daytype = config.get('Copy', 'copy_daytype')
 		if self.copy_daytype.strip() == 'all':
@@ -61,19 +60,19 @@ class DataTransfer:
 		print('----------config-----------')
 		print('copy_to : %s' % self.copy_to)
 		print('copy_from : %s' % self.copy_from)
-		print('copy_overwrite : %s' % self.copy_coverwrite)
+		print('copy_overwrite : %s' % self.copy_overwrite)
 		print('copy_target_extention : %s' % self.target_extention_raw)
 		print('copy_daytype : %s' % self.copy_daytype)
 		print('---------------------------')
 
 		TARGET_EXT = ["txt", "avi", "wav"]
 	
-	def create_directory(self, dirName):
-		"""
-		指定されたディレクトリがなければ作成する
-		"""
-		if not os.path.exists(dirName):
-			os.makedirs(dirName)
+	# def create_directory(self, dirName):
+	# 	"""
+	# 	指定されたディレクトリがなければ作成する
+	# 	"""
+	# 	if not os.path.exists(dirName):
+	# 		os.makedirs(dirName)
 
 	def check_and_copy(self, src, dst):
 		"""
@@ -84,9 +83,13 @@ class DataTransfer:
 		if os.path.isfile(src):
 
 			# 拡張子の確認
-			for ext in self.target_extention:
-				if src.lower().endswith(ext.lower()):
-					check_ext = True
+			check_ext = False
+			if self.target_extention is not None:
+				for ext in self.target_extention:
+					if src.lower().endswith(ext.lower()):
+						check_ext = True
+			else:
+				check_ext = True
 
 			if check_ext == False:
 				return
@@ -97,16 +100,17 @@ class DataTransfer:
 					return
 
 			# ファイルの存在確認
-			if self.overwrite == False and os.path.exists(dst) == True:
+			if self.copy_overwrite == False and os.path.exists(dst) == True:
 				return
+			
+			if os.path.exists(os.path.dirname(dst)) == False:
+				os.makedirs(os.path.dirname(dst))
 			
 			print("copying  %s -> %s" % (src, dst))
 			shutil.copy2(src, dst)
 
 		# フォルダの場合
 		elif os.path.isdir(src):
-
-			create_directory(dst)
 			
 			for child in os.listdir(src):
 
@@ -125,8 +129,8 @@ class DataTransfer:
 		コピーを実行
 		"""
 
-		self.create_directory(self.copy_to)
-		self.check_and_copy(self.copy_from, self.copy_to)
+		for child in os.listdir(self.copy_from):
+			self.check_and_copy(self.copy_from + "/" + child, self.copy_to + "/" + child)
 
 if __name__ == "__main__":
 
