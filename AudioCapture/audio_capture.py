@@ -136,67 +136,79 @@ class AudioCapture:
 			except ConnectionRefusedError:
 				print('Connecting to %s (port %d)' % (self.server_ip, self.server_port))
 				continue
+		
+		try:
+			self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			print('[SERVER CONNECTED]')
 
-		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		print('[SERVER CONNECTED]')
-
-		# 最初の接続メッセージを送る
-		message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
-		print("[SENT] %s" % message.strip())
-		self.s.send(message.encode(self.socket_message_format))
-
-		# 受信処理をメインスレッドとして続ける
-		while True:
-			message = self.s.recv(self.socket_buffer_size)
-			message = message.decode(self.socket_message_format)
-
-			print("[RECEIVE] %s" % message.strip())
-			
-			# センサスタート
-			if message.startswith('RECSTART') and self.recording == False:
-				
-				# ファイルを日付毎のファイルに保存	
-				if self.save_split_by_day:
-					self.save_dir = self.save_dir_original + '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
-				
-				# 保存場所のフォルダがない場合は作成
-				if os.path.exists(self.save_dir) == False:
-					os.makedirs(self.save_dir)
-
-				# ファイル保存に使用する名前
-				dt_now = datetime.datetime.now()
-				self.start_time_str = dt_now.strftime('%Y%m%d%H%M%S')
-				self.last_minute = dt_now.minute
-				self.data_saved = deque([])
-				
-				self.recording = True
-
-				temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
-				print('RECSTART : %s' % temp)
-
-				# 収録開始の接続メッセージを送る
-				message = "%d,%s,%s,Recording\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
-				print("[SENT] %s" % message.strip())
-				self.s.send(message.encode(self.socket_message_format))
-			
-			# センサ停止
-			elif message.startswith('RECSTOP') and self.recording:
-				
-				dt_now = datetime.datetime.now()
-				temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
-				print('RECSTOP : %s' % temp)
-
-				self.recording = False
-				self.data_saved.append(None)
-
-				self.filename_temp = self.save_dir + '/' + self.start_time_str + '.wav'
-				self.write()
-				self.data_saved = deque([])
-
-				# 待機状態のメッセージを送る
+		
+			# 最初の接続メッセージを送る
+			if self.recording == False:
 				message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
-				print("[SENT] %s" % message.strip())
-				self.s.send(message.encode(self.socket_message_format))
+			else:
+				message = "%d,%s,%s,Recording\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
+			print("[SENT] %s" % message.strip())
+			self.s.send(message.encode(self.socket_message_format))
+
+			# 受信処理をメインスレッドとして続ける
+			while True:
+				message = self.s.recv(self.socket_buffer_size)
+				message = message.decode(self.socket_message_format)
+
+				if len(message.strip()) == 0:
+					continue
+				
+				print("[RECEIVE] %s" % message.strip())
+				
+				# センサスタート
+				if message.startswith('RECSTART') and self.recording == False:
+					
+					# ファイルを日付毎のファイルに保存	
+					if self.save_split_by_day:
+						self.save_dir = self.save_dir_original + '/' + datetime.datetime.now().strftime('%Y%m%d') + '/'
+					
+					# 保存場所のフォルダがない場合は作成
+					if os.path.exists(self.save_dir) == False:
+						os.makedirs(self.save_dir)
+
+					# ファイル保存に使用する名前
+					dt_now = datetime.datetime.now()
+					self.start_time_str = dt_now.strftime('%Y%m%d%H%M%S')
+					self.last_minute = dt_now.minute
+					self.data_saved = deque([])
+					
+					self.recording = True
+
+					temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
+					print('RECSTART : %s' % temp)
+
+					# 収録開始の接続メッセージを送る
+					message = "%d,%s,%s,Recording\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
+					print("[SENT] %s" % message.strip())
+					self.s.send(message.encode(self.socket_message_format))
+				
+				# センサ停止
+				elif message.startswith('RECSTOP') and self.recording:
+					
+					dt_now = datetime.datetime.now()
+					temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
+					print('RECSTOP : %s' % temp)
+
+					self.recording = False
+					self.data_saved.append(None)
+
+					self.filename_temp = self.save_dir + '/' + self.start_time_str + '.wav'
+					self.write()
+					self.data_saved = deque([])
+
+					# 待機状態のメッセージを送る
+					message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
+					print("[SENT] %s" % message.strip())
+					self.s.send(message.encode(self.socket_message_format))
+		
+		except ConnectionResetError:
+			self.s.close()
+			self.process_connection()
 
 	# マイク入力処理を行う
 	def process_audio(self):
