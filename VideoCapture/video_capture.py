@@ -299,26 +299,36 @@ class VideoCapture:
 		# フレーム数を合わせて保存する
 		num_frame_recorded = 0
 		num_frame_target = self.video_fps * self.save_data_interval_minute * 60
-		for t in np.linspace(0, self.save_data_interval_minute * 60, num_frame_target):
-			
-			nearest_frame = None
-			min_diff = 1E+6
 
-			# 最初のファイル対策
-			if t > dt_len.total_seconds() + 1.0:
-				continue
-
+		# 正常
+		if num_frame == num_frame_target:
 			for d in data:
-				time = d[0] - dt_start
-				diff = abs(time.total_seconds() - t)
+				video_buffer.write(d[1])
+				num_frame_recorded += 1
+		
+		# 異常（フレームロスト）
+		else:
+
+			for t in np.linspace(0, self.save_data_interval_minute * 60, num_frame_target):
 				
-				if min_diff > diff:
-					min_diff = diff
-					nearest_frame = d[1]
-			
-			#if min_diff < MIN_DIFF and nearest_frame is not None:
-			video_buffer.write(nearest_frame)
-			num_frame_recorded += 1
+				nearest_frame = None
+				min_diff = 1E+6
+
+				# 最初のファイル対策
+				if t > dt_len.total_seconds() + 1.0:
+					continue
+
+				for d in data:
+					time = d[0] - dt_start
+					diff = abs(time.total_seconds() - t)
+					
+					if min_diff > diff:
+						min_diff = diff
+						nearest_frame = d[1]
+				
+				#if min_diff < MIN_DIFF and nearest_frame is not None:
+				video_buffer.write(nearest_frame)
+				num_frame_recorded += 1
 		
 		video_buffer.release()
 

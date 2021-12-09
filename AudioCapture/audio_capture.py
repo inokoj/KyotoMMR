@@ -245,7 +245,7 @@ class AudioCapture:
 				# データを取得
 				dat_raw = stream.read(self.audio_chunk, exception_on_overflow=False)
 				dat = np.frombuffer(dat_raw, np.int16)
-
+				
 				# チャネルを選択
 				if self.audio_input_channel != self.save_num_channel:
 					dat_new = []
@@ -340,30 +340,39 @@ class AudioCapture:
 		dt_end = data[-1][0]
 		dt_len = dt_end - dt_start
 
-		# フレーム数を合わせて保存する
+		# フレーム数を合わせて保存する(音声の場合は最悪のケース)
 		num_frame_recorded = 0
 		num_frame_target = int((self.audio_rate * self.save_data_interval_minute * 60) / self.audio_chunk)
 		data_saved_new = []
-		for t in np.linspace(0, self.save_data_interval_minute * 60, num_frame_target):
-			
-			nearest_frame = None
-			min_diff = 1E+6
-
-			# 最初のファイル対策
-			if t > dt_len.total_seconds() + 1.0:
-				continue
-
+		
+		# 正常
+		if num_frame == num_frame_target:
 			for d in data:
-				time = d[0] - dt_start
-				diff = abs(time.total_seconds() - t)
-				
-				if min_diff > diff:
-					min_diff = diff
-					nearest_frame = d[1]
+				data_saved_new.append(d[1])
+				num_frame_recorded += 1
+		# 異常（フレームロスト）
+		else:
 			
-			#if min_diff < MIN_DIFF and nearest_frame is not None:
-			data_saved_new.append(nearest_frame)
-			num_frame_recorded += 1
+			for t in np.linspace(0, self.save_data_interval_minute * 60, num_frame_target):
+				
+				nearest_frame = None
+				min_diff = 1E+6
+
+				# 最初のファイル対策
+				if t > dt_len.total_seconds() + 1.0:
+					continue
+
+				for d in data:
+					time = d[0] - dt_start
+					diff = abs(time.total_seconds() - t)
+					
+					if min_diff > diff:
+						min_diff = diff
+						nearest_frame = d[1]
+				
+				#if min_diff < MIN_DIFF and nearest_frame is not None:
+				data_saved_new.append(nearest_frame)
+				num_frame_recorded += 1
 		
 		# ファイルに保存
 		if os.path.exists(self.save_dir) == False:

@@ -82,56 +82,61 @@ class ExeLauncher:
 				print('Connecting to %s (port %d)' % (self.server_ip, self.server_port))
 				continue
 
-		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		print('[SERVER CONNECTED]')
+		try:
+			self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			print('[SERVER CONNECTED]')
 
-		# 最初の接続メッセージを送る
-		message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
-		print("[SENT] %s" % message.strip())
-		self.s.send(message.encode(self.socket_message_format))
+			# 最初の接続メッセージを送る
+			message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
+			print("[SENT] %s" % message.strip())
+			self.s.send(message.encode(self.socket_message_format))
 
-		# 受信処理をメインスレッドとして続ける
-		while True:
-			message = self.s.recv(self.socket_buffer_size)
-			message = message.decode(self.socket_message_format)
+			# 受信処理をメインスレッドとして続ける
+			while True:
+				message = self.s.recv(self.socket_buffer_size)
+				message = message.decode(self.socket_message_format)
 
-			print("[RECEIVE] %s" % message.strip())
-			
-			# センサスタート
-			if message.startswith('RECSTART') and self.recording == False:
+				print("[RECEIVE] %s" % message.strip())
 				
-				dt_now = datetime.datetime.now()
+				# センサスタート
+				if message.startswith('RECSTART') and self.recording == False:
+					
+					dt_now = datetime.datetime.now()
+					
+					self.process = subprocess.Popen(self.cmd, shell=True)
+					self.recording = True
+					print("Started process : %d" % self.process.pid)
+
+					temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
+					print('RECSTART : %s' % temp)
+
+					# 収録開始の接続メッセージを送る
+					message = "%d,%s,%s,Recording\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
+					print("[SENT] %s" % message.strip())
+					self.s.send(message.encode(self.socket_message_format))
 				
-				self.process = subprocess.Popen(self.cmd, shell=True)
-				self.recording = True
-				print("Started process : %d" % self.process.pid)
+				# センサ停止
+				elif message.startswith('RECSTOP') and self.recording:
+					
+					dt_now = datetime.datetime.now()
+					temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
+					print('RECSTOP : %s' % temp)
 
-				temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
-				print('RECSTART : %s' % temp)
+					#self.process.terminate()
+					
+					# For Windows
+					killcmd = "taskkill /F /PID {pid} /T".format(pid=self.process.pid)
+					subprocess.run(killcmd,shell=True)
+					self.recording = False
 
-				# 収録開始の接続メッセージを送る
-				message = "%d,%s,%s,Recording\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
-				print("[SENT] %s" % message.strip())
-				self.s.send(message.encode(self.socket_message_format))
-			
-			# センサ停止
-			elif message.startswith('RECSTOP') and self.recording:
-				
-				dt_now = datetime.datetime.now()
-				temp = dt_now.strftime('%Y-%m-%d %H:%M:%S')
-				print('RECSTOP : %s' % temp)
-
-				#self.process.terminate()
-				
-				# For Windows
-				killcmd = "taskkill /F /PID {pid} /T".format(pid=self.process.pid)
-				subprocess.run(killcmd,shell=True)
-				self.recording = False
-
-				# 待機状態のメッセージを送る
-				message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
-				print("[SENT] %s" % message.strip())
-				self.s.send(message.encode(self.socket_message_format))
+					# 待機状態のメッセージを送る
+					message = "%d,%s,%s,Ready\n" % (self.sensor_id, self.sensor_type, self.sensor_name)
+					print("[SENT] %s" % message.strip())
+					self.s.send(message.encode(self.socket_message_format))
+		
+		except ConnectionResetError:
+			self.s.close()
+			self.process_connection()
 
 if __name__ == "__main__":
 
